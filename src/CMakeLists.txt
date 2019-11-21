@@ -11,7 +11,7 @@ target_link_libraries(skanlite
     Qt5::Core
   PRIVATE
     KF5::CoreAddons
-    KF5::Sane
+    KF5Sane
     KF5::I18n
     KF5::XmlGui
     KF5::KIOWidgets

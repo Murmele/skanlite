@@ -49,7 +49,6 @@ find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
         XmlGui # KAboutApplicationDialog
 )
 
-find_package(KF5Sane ${KF5_MIN_VERSION} REQUIRED)
 
 add_definitions(-DQT_NO_URL_CAST_FROM_STRING)
 if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
@@ -57,6 +56,7 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
 endif()
 
 # Subdirectories
+add_subdirectory(libksane)
 add_subdirectory(src)
 add_subdirectory(doc)
 add_subdirectory(autotests)
