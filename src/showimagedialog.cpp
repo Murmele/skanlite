@@ -25,6 +25,7 @@
 
 #include "showimagedialog.h"
 #include "ImageViewer.h"
+#include "klocalizedstring.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -40,10 +41,19 @@ ShowImageDialog::ShowImageDialog(QWidget *parent)
 
     m_imageViewer = new ImageViewer;
 
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Discard);
-    connect(buttonBox, &QDialogButtonBox::accepted, this, &ShowImageDialog::saveRequested);
-    connect(buttonBox->button(QDialogButtonBox::Discard), &QPushButton::clicked, this, &QDialog::reject);
-    m_saveButton = buttonBox->button(QDialogButtonBox::Save);
+	auto *pbDiscard = new QPushButton(i18n("&Discard"), this);
+	connect(pbDiscard, &QPushButton::clicked, this, &QDialog::reject);
+	auto *pbSave = new QPushButton(i18n("&Save"), this);
+	connect(pbSave, &QPushButton::clicked, this, &ShowImageDialog::saveRequested);
+	auto *pbNew = new QPushButton(i18n("Scan new document"), this);
+	connect(pbNew, &QPushButton::clicked, this, &ShowImageDialog::scanNewPaper);
+	auto *pbRescan = new QPushButton(i18n("Rescan document"), this);
+	connect(pbRescan, &QPushButton::clicked, this, &ShowImageDialog::rescan);
+
+//    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Discard);
+//    connect(buttonBox, &QDialogButtonBox::accepted, this, &ShowImageDialog::saveRequested);
+//    connect(buttonBox->button(QDialogButtonBox::Discard), &QPushButton::clicked, this, &QDialog::reject);
+	m_saveButton = pbSave; //buttonBox->button(QDialogButtonBox::Save);
 
     auto *buttonsLayout = new QHBoxLayout;
     const auto imageViewerActions = m_imageViewer->actions();
@@ -52,7 +62,10 @@ ShowImageDialog::ShowImageDialog(QWidget *parent)
         toolButton->setDefaultAction(action);
         buttonsLayout->addWidget(toolButton);
     }
-    buttonsLayout->addWidget(buttonBox);
+	buttonsLayout->addWidget(pbDiscard);
+	buttonsLayout->addWidget(pbSave);
+	buttonsLayout->addWidget(pbNew);
+	buttonsLayout->addWidget(pbRescan);
 
     mainLayout->addWidget(m_imageViewer);
     mainLayout->addLayout(buttonsLayout);

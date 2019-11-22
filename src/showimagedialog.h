@@ -43,6 +43,8 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void saveRequested();
+    void scanNewPaper();
+    void rescan();
 
 protected:
     void showEvent(QShowEvent *e) override;

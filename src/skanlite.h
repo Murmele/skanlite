@@ -33,9 +33,11 @@
 #include "DBusInterface.h"
 #include "KSaneImageSaver.h"
 
+class QListView;
 class ShowImageDialog;
 class SaveLocation;
 class KAboutData;
+class ListModel;
 
 using namespace KSaneIface;
 
@@ -95,12 +97,14 @@ protected:
 
 private:
     KAboutData              *m_aboutData;
-    KSaneWidget             *m_ksanew = nullptr;
-    KSaneImageSaver         *m_imageSaver = nullptr;
+	KSaneWidget             *m_ksanew{nullptr};
+	QListView				*m_scannedDocuments{nullptr};
+	ListModel				*m_scannedDocumentsModel{nullptr};
+	KSaneImageSaver         *m_imageSaver{nullptr};
     Ui::SkanliteSettings     m_settingsUi;
-    QDialog                 *m_settingsDialog = nullptr;
-    ShowImageDialog         *m_showImgDialog = nullptr;
-    SaveLocation            *m_saveLocation = nullptr;
+	QDialog                 *m_settingsDialog{nullptr};
+	ShowImageDialog         *m_showImgDialog{nullptr};
+	SaveLocation            *m_saveLocation{nullptr};
     QString                  m_deviceName;
     QMap<QString, QString>   m_defaultScanOpts;
     QMap<QString, QString>   m_pendingApplyScanOpts;

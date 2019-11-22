@@ -41,6 +41,8 @@
 #include <QMimeType>
 #include <QMimeDatabase>
 #include <QCloseEvent>
+#include <QListView>
+#include <QSplitter>
 
 #include <KAboutApplicationDialog>
 #include <KLocalizedString>
@@ -52,8 +54,9 @@
 #include <KSharedConfig>
 #include <KConfigGroup>
 #include <KHelpClient>
-
 #include <errno.h>
+
+#include <ListModel.h>
 
 Skanlite::Skanlite(const QString &device, QWidget *parent)
     : QDialog(parent)
@@ -86,7 +89,17 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
     m_imageSaver = new KSaneImageSaver(this);
     connect(m_imageSaver, &KSaneImageSaver::imageSaved, this, &Skanlite::imageSaved);
 
-    mainLayout->addWidget(m_ksanew);
+
+	auto *splitter = new QSplitter(this);
+	splitter->addWidget(m_ksanew);
+	m_scannedDocumentsModel = new ListModel();
+	m_scannedDocuments = new QListView();
+	m_scannedDocuments->setModel(m_scannedDocumentsModel);
+	//m_scannedDocuments->setViewMode(QListView::IconMode);
+	splitter->addWidget(m_scannedDocuments);
+	//auto* collapser = new KSaneIface::SplitterCollapser(splitter, m_scannedDocuments);
+
+	mainLayout->addWidget(splitter);
     mainLayout->addWidget(dlgButtonBoxBottom);
 
     m_ksanew->initGetDeviceList();
@@ -368,6 +381,8 @@ void Skanlite::imageReady(QByteArray &data, int w, int h, int bpl, int f)
     if (m_settingsUi.showB4Save->isChecked() == true) {
         /* copy the image data into m_img and show it*/
         m_img = m_ksanew->toQImageSilent(data, w, h, bpl, (KSaneIface::KSaneWidget::ImageFormat)f);
+		ListItem* item = new ListItem(m_img);
+		m_scannedDocumentsModel->appendItem(item);
         m_showImgDialog->setQImage(&m_img);
         m_showImgDialog->zoom2Fit();
         m_showImgDialog->exec();
