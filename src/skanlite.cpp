@@ -95,7 +95,7 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
 	m_scannedDocumentsModel = new ListModel();
 	m_scannedDocuments = new QListView();
 	m_scannedDocuments->setModel(m_scannedDocumentsModel);
-	//m_scannedDocuments->setViewMode(QListView::IconMode);
+	m_scannedDocuments->setViewMode(QListView::IconMode);
 	splitter->addWidget(m_scannedDocuments);
 	//auto* collapser = new KSaneIface::SplitterCollapser(splitter, m_scannedDocuments);
 

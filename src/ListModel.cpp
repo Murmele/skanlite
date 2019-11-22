@@ -1,5 +1,7 @@
 #include "ListModel.h"
 
+#include "klocalizedstring.h"
+
 //#########################################################################
 // Listitem
 //#########################################################################
@@ -7,12 +9,13 @@ ListItem::ListItem(QImage image): m_image(image) {
 
 }
 
-QIcon* ListItem::previewIcon() {
+QImage *ListItem::previewIcon() {
 	return &m_preview;
 }
 
 void ListItem::setImage(QImage image) {
 	m_image = image;
+	m_preview = m_image.scaledToHeight(100);
 }
 
 //#########################################################################
@@ -25,7 +28,8 @@ ListModel::ListModel(QObject *parent) : QAbstractListModel(parent)
 }
 
 int ListModel::rowCount(const QModelIndex &parent) const {
-	return parent.isValid() ? m_scannedDocuments.length() : 0;
+	int length =  parent.isValid() ? 0 : m_scannedDocuments.length(); // ? why this order?
+	return length;
 }
 
 QVariant ListModel::data(const QModelIndex &index, int role) const {
@@ -41,44 +45,55 @@ QVariant ListModel::data(const QModelIndex &index, int role) const {
 	if (role == Qt::BackgroundRole)
 		return QColor(Qt::red);
 
+	if (role == Qt::DisplayRole || role == Qt::EditRole)
+		return QVariant(i18n("Teststring"));
+
 	return QVariant();
 }
 
-bool ListModel::setData(const QModelIndex &index, const QVariant &value, int role) {
+//Qt::ItemFlags ListModel::flags(const QModelIndex &index) const {
+//	if (!index.isValid())
+//			return 0;
+
+//	return Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
+//}
+
+bool ListModel::appendItem(ListItem* item) {
+	int count = m_scannedDocuments.count();
+	insertRows(count, 1);
+
+	QModelIndex itemIndex = createIndex(count, 0, item); // create index for the new item
+	m_scannedDocuments[count] = item;
 	return true;
 }
 
-Qt::ItemFlags ListModel::flags(const QModelIndex &index) const {
-	if (!index.isValid())
-			return 0;
+//bool ListModel::setData(const QModelIndex &index, const QVariant &value, int role) {
+//	return true;
+//}
 
-	return Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
+bool ListModel::removeRows(int row, int count, const QModelIndex &parent)  {
+	beginRemoveRows(parent,row, row + count -1);
+	for (int i = 0; i < count; i++)
+		m_scannedDocuments.removeAt(row);
+	endRemoveRows();
+	return true;
 }
 
-bool ListModel::appendItem(ListItem* item) {
-	beginInsertRows(QModelIndex(), m_scannedDocuments.count(), m_scannedDocuments.count());
-	m_scannedDocuments.append(item);
+bool ListModel::removeRow(int row, const QModelIndex &parent) {
+	return removeRows(row, 1, parent);
+}
+
+bool ListModel::insertRows(int row, int count, const QModelIndex &parent) {
+	beginInsertRows(parent, row, row + count -1);
+	ListItem* item = nullptr;
+	m_scannedDocuments.insert(row, item);
 	endInsertRows();
 	return true;
 }
 
-//bool ListModel::removeRows(int row, int count, const QModelIndex &parent)  {
-//	beginRemoveRows(parent,row, row + count -1);
-//	endRemoveRows();
-//}
-
-//bool ListModel::removeRow(int row, const QModelIndex &parent) {
-
-//}
-
-//bool ListModel::insertRows(int row, int count, const QModelIndex &parent) {
-//	beginInsertRows(parent, row, row + count -1);
-//	endInsertRows();
-//}
-
-//bool ListModel::insertRow(int row, const QModelIndex &parent) {
-
-//}
+bool ListModel::insertRow(int row, const QModelIndex &parent) {
+	return insertRows(row, 1, parent);
+}
 
 ListItem* ListModel::getItem(const QModelIndex &index) const {
 	if (index.isValid()) {
