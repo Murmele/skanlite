@@ -95,7 +95,10 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
 	m_scannedDocumentsModel = new ListModel();
 	m_scannedDocuments = new QListView();
 	m_scannedDocuments->setModel(m_scannedDocumentsModel);
-	m_scannedDocuments->setViewMode(QListView::IconMode);
+	//m_scannedDocuments->setViewMode(QListView::IconMode);
+	m_scannedDocuments->setDragDropMode(QAbstractItemView::InternalMove);
+	m_scannedDocuments->setDragDropOverwriteMode(false);
+	m_scannedDocuments->setMovement(QListView::Snap);
 	splitter->addWidget(m_scannedDocuments);
 	//auto* collapser = new KSaneIface::SplitterCollapser(splitter, m_scannedDocuments);
 
@@ -381,7 +384,7 @@ void Skanlite::imageReady(QByteArray &data, int w, int h, int bpl, int f)
     if (m_settingsUi.showB4Save->isChecked() == true) {
         /* copy the image data into m_img and show it*/
         m_img = m_ksanew->toQImageSilent(data, w, h, bpl, (KSaneIface::KSaneWidget::ImageFormat)f);
-		ListItem* item = new ListItem(m_img);
+		ListItem* item = new ListItem(i18n("Temp_name"), m_img);
 		m_scannedDocumentsModel->appendItem(item);
         m_showImgDialog->setQImage(&m_img);
         m_showImgDialog->zoom2Fit();
