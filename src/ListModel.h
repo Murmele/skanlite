@@ -12,8 +12,12 @@
 class ListItem
 {
 public:
+	ListItem();
 	ListItem(QString name, QImage image);
 	QImage* previewIcon();
+	void setPreviewIcon(QImage icon);
+	QImage *image();
+	void setImage(QImage* image);
     void setImage(QImage image);
 	void setName(QString name);
 	void setChecked(bool checked);
@@ -42,6 +46,10 @@ public:
 		bool insertRow(int row, const QModelIndex &parent = QModelIndex());
 		bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
         bool appendItem(ListItem* item);
+		bool moveRows(const QModelIndex &sourceParent, int sourceRow, int count, const QModelIndex &destinationParent, int destinationChild) override;
+		bool moveRow(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationChild);
+		Qt::DropActions supportedDropActions() const override;
+		QHash<int, QByteArray> roleNames() const override;
 private:
         ListItem* getItem(const QModelIndex &index) const;
  private:

@@ -97,8 +97,9 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
 	m_scannedDocuments->setModel(m_scannedDocumentsModel);
 	//m_scannedDocuments->setViewMode(QListView::IconMode);
 	m_scannedDocuments->setDragDropMode(QAbstractItemView::InternalMove);
-	m_scannedDocuments->setDragDropOverwriteMode(false);
+	//m_scannedDocuments->setDragDropOverwriteMode(false);
 	m_scannedDocuments->setMovement(QListView::Snap);
+	m_scannedDocuments->setDefaultDropAction(Qt::MoveAction);
 	splitter->addWidget(m_scannedDocuments);
 	//auto* collapser = new KSaneIface::SplitterCollapser(splitter, m_scannedDocuments);
 
