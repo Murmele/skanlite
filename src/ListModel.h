@@ -13,17 +13,20 @@ class ListItem
 {
 public:
 	ListItem();
-	ListItem(QString name, QImage image);
-	QImage* previewIcon();
+	ListItem(QString name, QImage image, int hash);
+	const QImage *previewIcon() const;
 	void setPreviewIcon(QImage icon);
-	QImage *image();
-	void setImage(QImage* image);
+	const QImage *image() const;
+	int hash() const;
+	void setHash(int hash);
+	void setImage(const QImage *image);
     void setImage(QImage image);
 	void setName(QString name);
 	void setChecked(bool checked);
-	QString name();
-	bool checked();
+	QString name() const;
+	bool checked() const;
 private:
+	int m_hash;
 	QImage m_preview;
     QImage m_image;
 	QString m_name;
@@ -36,9 +39,11 @@ class ListModel: public QAbstractListModel
 
 public:
         ListModel(QObject *parent = nullptr);
+		bool appendImage(QImage& image);
         int rowCount(const QModelIndex &parent = QModelIndex()) const override;
         QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 		bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+		bool setDataFromItem(const QModelIndex &index, const ListItem* item);
 		Qt::ItemFlags flags(const QModelIndex &index) const override;
 		QModelIndex index(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const override;
 		bool removeRow(int row, const QModelIndex &parent = QModelIndex());
@@ -49,8 +54,14 @@ public:
 		bool moveRows(const QModelIndex &sourceParent, int sourceRow, int count, const QModelIndex &destinationParent, int destinationChild) override;
 		bool moveRow(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationChild);
 		Qt::DropActions supportedDropActions() const override;
+		bool canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
+		bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
+		QMimeData *mimeData(const QModelIndexList &indexes) const override;
+		QStringList mimeTypes() const;
 private:
         ListItem* getItem(const QModelIndex &index) const;
+		ListItem* getItem(int hash) const ;
+		int m_maxHash{-1}; // -1 means no images are available
  private:
 	QList<ListItem*> m_scannedDocuments;
 };

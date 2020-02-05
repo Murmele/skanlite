@@ -385,8 +385,7 @@ void Skanlite::imageReady(QByteArray &data, int w, int h, int bpl, int f)
     if (m_settingsUi.showB4Save->isChecked() == true) {
         /* copy the image data into m_img and show it*/
         m_img = m_ksanew->toQImageSilent(data, w, h, bpl, (KSaneIface::KSaneWidget::ImageFormat)f);
-		ListItem* item = new ListItem(i18n("Temp_name"), m_img);
-		m_scannedDocumentsModel->appendItem(item);
+		m_scannedDocumentsModel->appendImage(m_img);
         m_showImgDialog->setQImage(&m_img);
         m_showImgDialog->zoom2Fit();
         m_showImgDialog->exec();

@@ -2,6 +2,8 @@
 
 #include "klocalizedstring.h"
 
+#include <QMimeData>
+
 //#########################################################################
 // Listitem
 //#########################################################################
@@ -9,11 +11,11 @@ ListItem::ListItem() {
 
 }
 
-ListItem::ListItem(QString name, QImage image): m_name(name), m_checked(false) {
+ListItem::ListItem(QString name, QImage image, int hash): m_name(name), m_checked(false), m_hash(hash) {
 	setImage(image);
 }
 
-QImage *ListItem::previewIcon() {
+const QImage *ListItem::previewIcon() const{
 	return &m_preview;
 }
 
@@ -21,11 +23,15 @@ void ListItem::setPreviewIcon(QImage icon) {
 	m_preview = icon;
 }
 
-QImage* ListItem::image() {
+const QImage* ListItem::image() const {
 	return &m_image;
 }
 
-void ListItem::setImage(QImage* image) {
+void ListItem::setHash(int hash) {
+	m_hash = hash;
+}
+
+void ListItem::setImage(const QImage* image) {
 	m_image = *image;
 	m_preview = m_image.scaledToHeight(100);
 }
@@ -35,12 +41,16 @@ void ListItem::setImage(QImage image) {
 	m_preview = m_image.scaledToHeight(100);
 }
 
-QString ListItem::name() {
+QString ListItem::name() const{
 	return m_name;
 }
 
-bool ListItem::checked() {
+bool ListItem::checked() const {
 	return m_checked;
+}
+
+int ListItem::hash() const {
+	return m_hash;
 }
 
 void ListItem::setName(QString name) {
@@ -96,7 +106,7 @@ QVariant ListModel::data(const QModelIndex &index, int role) const {
 Qt::ItemFlags ListModel::flags(const QModelIndex &index) const {
 	if (index.isValid())
 		return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable |  Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEditable;
-	return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable |  Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
+	return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable | Qt::ItemIsDropEnabled;
 }
 
 /*!
@@ -136,6 +146,96 @@ Qt::DropActions ListModel::supportedDropActions() const {
 	return Qt::MoveAction;
 }
 
+bool ListModel::canDropMimeData(const QMimeData *data,
+	Qt::DropAction action, int row, int column, const QModelIndex &parent)
+{
+	Q_UNUSED(action);
+	Q_UNUSED(row);
+	Q_UNUSED(parent);
+
+	if (!data->hasFormat(i18n("skanLite/ScannedDocuments/Hash")))
+		return false;
+
+	if (column > 0)
+		return false;
+
+	return true;
+}
+
+QMimeData* ListModel::mimeData(const QModelIndexList &indexes) const {
+	QMimeData* mimeData = new QMimeData();
+
+	// do I have to check this?
+	if (!indexes.count())
+		return mimeData;
+
+	QByteArray encodedData;
+	QDataStream stream(&encodedData, QIODevice::WriteOnly);
+
+	for (auto index : indexes) {
+		ListItem* item = getItem(index);
+		stream << item->hash();
+	}
+
+	mimeData->setData(i18n("skanLite/ScannedDocuments/Hash"), encodedData);
+
+	return mimeData;
+}
+
+/*!
+ * \brief ListModel::mimeTypes
+ * Needed, because otherwise dropMimeData is never called, because the mimeType is not valid
+ * \return
+ */
+QStringList ListModel::mimeTypes() const
+{
+	QStringList types;
+	types << i18n("skanLite/ScannedDocuments/Hash");
+	return types;
+}
+
+bool ListModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) {
+
+	if (action == Qt::IgnoreAction)
+		return true;
+
+	if (!data->hasFormat(i18n("skanLite/ScannedDocuments/Hash")))
+		return false;
+
+	if (column > 0)
+		return false;
+
+	if (parent.isValid())
+		return false; // drop on another item makes no sense, so ignore these cases
+
+	// https://doc.qt.io/archives/4.6/model-view-dnd.html
+	if (row == -1)
+		row = rowCount(QModelIndex());
+
+	QByteArray encodedData = data->data(i18n("skanLite/ScannedDocuments/Hash"));
+	QDataStream stream(&encodedData, QIODevice::ReadOnly);
+
+	QVector<int> hashes;
+	while (!stream.atEnd()) {
+		int hash;
+		stream >> hash;
+		hashes.append(hash);
+	}
+
+	insertRows(row, hashes.count(), QModelIndex());
+	for (int i = 0; i < hashes.count(); i++) {
+		QModelIndex idx = index(row + i, 0, QModelIndex());
+		ListItem* item = getItem(hashes[i]);
+		if (!item)
+			return false;
+		setDataFromItem(idx, item);
+	}
+
+	// true to call deleteRow() after inserting
+	// https://stackoverflow.com/questions/59130393/qlistview-moverow-from-model-not-called
+	return true;
+}
+
 QModelIndex ListModel::index(int row, int column, const QModelIndex &parent) const {
 	if (column != 0 || row < 0 || row >= m_scannedDocuments.count())
 		return QModelIndex();
@@ -152,6 +252,13 @@ bool ListModel::appendItem(ListItem* item) {
 	//QModelIndex itemIndex = createIndex(count, 0, item); // create index for the new item
 	m_scannedDocuments[count] = item;
 	return true;
+}
+
+bool ListModel::appendImage(QImage& image) {
+	m_maxHash++;
+
+	ListItem* item = new ListItem(i18n("Temp_name"), image, m_maxHash);
+	return appendItem(item);
 }
 
 /*!
@@ -179,6 +286,24 @@ bool ListModel::setData(const QModelIndex &index, const QVariant &value, int rol
 		item->setPreviewIcon(value.value<QImage>());
 
 	dataChanged(index, index, QVector<int>(role));
+	return true;
+}
+
+bool ListModel::setDataFromItem(const QModelIndex &index, const ListItem* item) {
+	if (!index.isValid())
+		return false;
+
+	ListItem* newItem = getItem(index);
+
+	newItem->setImage(item->image());
+	newItem->setName(item->name());
+	newItem->setHash(item->hash());
+	newItem->setChecked(item->checked());
+
+	dataChanged(index, index, QVector<int>(Qt::EditRole));
+	dataChanged(index, index, QVector<int>(Qt::CheckStateRole));
+	dataChanged(index, index, QVector<int>(Qt::DecorationRole));
+
 	return true;
 }
 
@@ -214,5 +339,16 @@ ListItem* ListModel::getItem(const QModelIndex &index) const {
 	if (item)
 		return item;
 
+	return nullptr;
+}
+
+ListItem* ListModel::getItem(int hash) const {
+	if (hash < 0)
+		return nullptr;
+
+	for (auto item : m_scannedDocuments) {
+		if (item->hash() == hash)
+			return item;
+	}
 	return nullptr;
 }
