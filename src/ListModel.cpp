@@ -90,13 +90,6 @@ QVariant ListModel::data(const QModelIndex &index, int role) const {
 		return Qt::CheckState::Unchecked;
 	}
 
-	if (role == Qt::UserRole) {
-		QVariant v;
-		v.setValue(item->image());
-		return v;
-	}
-
-
 	return QVariant();
 }
 // https://www.qtcentre.org/threads/23258-How-to-reorder-items-in-QListView
@@ -143,12 +136,6 @@ Qt::DropActions ListModel::supportedDropActions() const {
 	return Qt::MoveAction;
 }
 
-QHash<int, QByteArray> ListModel::roleNames() const {
-	QHash<int, QByteArray> roles = QAbstractItemModel::roleNames();
-	roles[Qt::UserRole] = "Qt::UserRole";
-	return roles;
-}
-
 QModelIndex ListModel::index(int row, int column, const QModelIndex &parent) const {
 	if (column != 0 || row < 0 || row >= m_scannedDocuments.count())
 		return QModelIndex();
@@ -190,9 +177,6 @@ bool ListModel::setData(const QModelIndex &index, const QVariant &value, int rol
 
 	if (role == Qt::DecorationRole)
 		item->setPreviewIcon(value.value<QImage>());
-
-	if (role == Qt::UserRole)
-		item->setImage(value.value<QImage*>());
 
 	dataChanged(index, index, QVector<int>(role));
 	return true;

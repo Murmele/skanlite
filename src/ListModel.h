@@ -49,7 +49,6 @@ public:
 		bool moveRows(const QModelIndex &sourceParent, int sourceRow, int count, const QModelIndex &destinationParent, int destinationChild) override;
 		bool moveRow(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationChild);
 		Qt::DropActions supportedDropActions() const override;
-		QHash<int, QByteArray> roleNames() const override;
 private:
         ListItem* getItem(const QModelIndex &index) const;
  private:
