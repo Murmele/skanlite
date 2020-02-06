@@ -58,6 +58,7 @@ public:
 		bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 		QMimeData *mimeData(const QModelIndexList &indexes) const override;
 		QStringList mimeTypes() const;
+		bool removeItem(const QModelIndex& index);
 private:
         ListItem* getItem(const QModelIndex &index) const;
 		ListItem* getItem(int hash) const ;

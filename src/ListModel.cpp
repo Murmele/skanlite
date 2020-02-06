@@ -307,6 +307,16 @@ bool ListModel::setDataFromItem(const QModelIndex &index, const ListItem* item) 
 	return true;
 }
 
+/*!
+ * \brief ListModel::removeItem
+ * Removes item from the model
+ * \param index index of the item which should be removed
+ * \return true if success, else false
+ */
+bool ListModel::removeItem(const QModelIndex& index) {
+	return removeRows(index.row(), 1, index.parent());
+}
+
 bool ListModel::removeRows(int row, int count, const QModelIndex &parent)  {
 	beginRemoveRows(parent,row, row + count -1);
 	for (int i = 0; i < count; i++)
