@@ -400,7 +400,7 @@ void Skanlite::imageReady(QByteArray &data, int w, int h, int bpl, int f)
 		m_scannedDocumentsModel->appendImage(m_img);
         m_showImgDialog->setQImage(&m_img);
         m_showImgDialog->zoom2Fit();
-        m_showImgDialog->exec();
+		m_showImgDialog->show();
         // save has been done as a result of save or then we got cancel
     }
     else {

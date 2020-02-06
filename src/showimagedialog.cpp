@@ -36,6 +36,8 @@
 ShowImageDialog::ShowImageDialog(QWidget *parent)
     : QDialog(parent)
 {
+	setModal(true); // so it is possible to use show() instead of exec()
+
     auto *mainLayout = new QVBoxLayout;
     setLayout(mainLayout);
 
