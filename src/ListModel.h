@@ -30,7 +30,7 @@ private:
 	QImage m_preview;
     QImage m_image;
 	QString m_name;
-	bool m_checked;
+	bool m_checked{true};
 };
 
 class ListModel: public QAbstractListModel

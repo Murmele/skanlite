@@ -11,7 +11,7 @@ ListItem::ListItem() {
 
 }
 
-ListItem::ListItem(QString name, QImage image, int hash): m_name(name), m_checked(false), m_hash(hash) {
+ListItem::ListItem(QString name, QImage image, int hash): m_name(name), m_hash(hash) {
 	setImage(image);
 }
 
