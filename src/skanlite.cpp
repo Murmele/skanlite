@@ -219,6 +219,9 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
     m_showImgDialog = new ShowImageDialog(this);
     connect(m_showImgDialog, &ShowImageDialog::saveRequested, this, &Skanlite::saveImage);
     connect(m_showImgDialog, &ShowImageDialog::rejected, m_ksanew, &KSaneWidget::scanCancel);
+	connect(m_showImgDialog, &ShowImageDialog::scanNewPaper, this, &Skanlite::scanNew);
+	connect(m_showImgDialog, &ShowImageDialog::rescan, this, &Skanlite::rescan);
+	connect(m_showImgDialog, &ShowImageDialog::finish, this, &Skanlite::finishedScanning);
 
     // save the default sane options for later use
     m_ksanew->getOptVals(m_defaultScanOpts);
@@ -397,7 +400,6 @@ void Skanlite::imageReady(QByteArray &data, int w, int h, int bpl, int f)
     if (m_settingsUi.showB4Save->isChecked() == true) {
         /* copy the image data into m_img and show it*/
         m_img = m_ksanew->toQImageSilent(data, w, h, bpl, (KSaneIface::KSaneWidget::ImageFormat)f);
-		m_scannedDocumentsModel->appendImage(m_img);
         m_showImgDialog->setQImage(&m_img);
         m_showImgDialog->zoom2Fit();
 		m_showImgDialog->show();
@@ -574,6 +576,36 @@ void Skanlite::saveImage()
     } else {
         m_imageSaver->saveQImage(fileUrl, localName, m_data, m_width, m_height, m_bytesPerLine, (int) m_ksanew->currentDPI(), m_format, fileFormat, quality);
     }
+}
+
+/*!
+ * \brief Skanlite::rescan
+ * Discard previous scanned image and scan new
+ */
+void Skanlite::rescan() {
+	// discard previous image and rescan
+	m_ksanew->scanCancel();
+	m_ksanew->scanFinal();
+}
+
+/*!
+ * \brief Skanlite::finishedScanning
+ * Store the scanned image in the listmodel and close the dialog to
+ * export the scanned images
+ */
+void Skanlite::finishedScanning() {
+	m_scannedDocumentsModel->appendImage(m_img);
+	m_showImgDialog->close();
+}
+
+/*!
+ * \brief Skanlite::scanNew
+ * Store the scanned image in the listmodel and scan a new document.
+ * Usefull for multipage documents
+ */
+void Skanlite::scanNew() {
+	m_scannedDocumentsModel->appendImage(m_img);
+	m_ksanew->scanFinal();
 }
 
 void Skanlite::imageSaved(const QUrl &fileUrl, const QString &localName, bool success)

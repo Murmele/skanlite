@@ -61,12 +61,16 @@ private:
     void loadScannerOptions();
 
     void processSelectionOptions(QMap<QString, QString> &opts, bool ignoreSelection);
+	bool eventFilter(QObject *object, QEvent *event);
 
 private Q_SLOTS:
     void showSettingsDialog();
     void getDir();
     void imageReady(QByteArray &, int, int, int, int);
     void saveImage();
+	void rescan();
+	void scanNew();
+	void finishedScanning();
     void imageSaved(const QUrl &url, const QString &name, bool success);
     void showAboutDialog();
     void saveWindowSize();

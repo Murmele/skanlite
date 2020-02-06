@@ -45,6 +45,7 @@ Q_SIGNALS:
     void saveRequested();
     void scanNewPaper();
     void rescan();
+	void finish();
 
 protected:
     void showEvent(QShowEvent *e) override;

@@ -51,6 +51,8 @@ ShowImageDialog::ShowImageDialog(QWidget *parent)
 	connect(pbNew, &QPushButton::clicked, this, &ShowImageDialog::scanNewPaper);
 	auto *pbRescan = new QPushButton(i18n("Rescan document"), this);
 	connect(pbRescan, &QPushButton::clicked, this, &ShowImageDialog::rescan);
+	auto *pbFinish = new QPushButton(i18n("Finish"), this);
+	connect(pbFinish, &QPushButton::clicked, this, &ShowImageDialog::finish);
 
 //    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Discard);
 //    connect(buttonBox, &QDialogButtonBox::accepted, this, &ShowImageDialog::saveRequested);
@@ -68,6 +70,7 @@ ShowImageDialog::ShowImageDialog(QWidget *parent)
 	buttonsLayout->addWidget(pbSave);
 	buttonsLayout->addWidget(pbNew);
 	buttonsLayout->addWidget(pbRescan);
+	buttonsLayout->addWidget(pbFinish);
 
     mainLayout->addWidget(m_imageViewer);
     mainLayout->addLayout(buttonsLayout);
