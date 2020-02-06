@@ -94,6 +94,7 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
 	splitter->addWidget(m_ksanew);
 	m_scannedDocumentsModel = new ListModel();
 	m_scannedDocuments = new QListView();
+	m_scannedDocuments->installEventFilter(this);
 	m_scannedDocuments->setModel(m_scannedDocumentsModel);
 	//m_scannedDocuments->setViewMode(QListView::IconMode);
 	m_scannedDocuments->setDragDropMode(QAbstractItemView::InternalMove);
@@ -254,6 +255,17 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
     else {
         // keep working without dbus
     }
+}
+
+bool Skanlite::eventFilter(QObject *object, QEvent *event)
+{
+	if (object == m_scannedDocuments && event->type() == QEvent::KeyPress) {
+		QKeyEvent *ke = static_cast<QKeyEvent *>(event);
+		if (ke->key() == Qt::Key_Delete)
+			return m_scannedDocumentsModel->removeItem(m_scannedDocuments->currentIndex());
+	}
+
+	return false;
 }
 
 void Skanlite::showHelp()
