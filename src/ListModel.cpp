@@ -283,8 +283,12 @@ bool ListModel::setData(const QModelIndex &index, const QVariant &value, int rol
 	if (role == Qt::EditRole)
 		item->setName(value.toString());
 
-	if (role == Qt::CheckStateRole)
+	if (role == Qt::CheckStateRole) {
+		if (m_suppressCheckStateChanges)
+			return false;
 		item->setChecked(Qt::Checked == value.toInt());
+		checkSelectionOfAllItems();
+	}
 
 	if (role == Qt::DecorationRole)
 		item->setPreviewIcon(value.value<QImage>());
@@ -326,6 +330,8 @@ bool ListModel::removeRows(int row, int count, const QModelIndex &parent)  {
 	for (int i = 0; i < count; i++)
 		m_scannedDocuments.removeAt(row);
 	endRemoveRows();
+
+	checkSelectionOfAllItems();
 	return true;
 }
 
@@ -338,6 +344,8 @@ bool ListModel::insertRows(int row, int count, const QModelIndex &parent) {
 	ListItem* item = new ListItem();
 	m_scannedDocuments.insert(row, item);
 	endInsertRows();
+
+	checkSelectionOfAllItems();
 	return true;
 }
 
@@ -370,4 +378,71 @@ ListItem* ListModel::getItemFromId(int id) const {
 			return item;
 	}
 	return nullptr;
+}
+
+/*!
+ * \brief ListModel::deleteSelectedScans
+ * Delets all scans which are selected in the listview
+ */
+void ListModel::deleteSelectedScans() {
+
+	int count = rowCount();
+	for (int i = count - 1; i >= 0; i--) {
+		QModelIndex idx = index(i, 0, QModelIndex());
+		if (data(idx, Qt::CheckStateRole).toInt() == Qt::CheckState::Checked)
+			removeItem(idx);
+	}
+}
+
+bool ListModel::changeSelectionOfScans(int checkstate) {
+	if (rowCount() == 0)
+		return false;
+
+	for (int i = 0; i < rowCount(); i++) {
+		QModelIndex idx = index(i, 0, QModelIndex());
+		setData(idx, checkstate, Qt::CheckStateRole);
+	}
+	return true;
+}
+
+void ListModel::checkSelectionOfAllItems() {
+
+	bool unchecked = false; // set to true when one item is unchecked
+	bool checked = false; // set to true when on item is checked
+
+	Qt::CheckState checkState = Qt::CheckState::Unchecked;
+
+	if (rowCount() == 0)
+		return;
+
+	for (int i = 0; i < rowCount(); i++) {
+		QModelIndex idx = index(i, 0, QModelIndex());
+		if (data(idx, Qt::CheckStateRole).toInt() == Qt::CheckState::Checked) {
+			checked = true;
+			if (unchecked)
+				break;
+			continue;
+		}
+
+		if (data(idx, Qt::CheckStateRole).toInt() == Qt::CheckState::Unchecked) {
+			unchecked = true;
+			if (checked)
+				break;
+			continue;
+		}
+	}
+
+	if (unchecked && checked)
+		checkState = Qt::CheckState::PartiallyChecked;
+	else if (checked)
+		checkState = Qt::CheckState::Checked;
+	else
+		checked = Qt::CheckState::Unchecked;
+
+	m_suppressCheckStateChanges = true;
+	if (checkState != m_checkSate) {
+		m_checkSate = checkState;
+		emit selectionChanged(m_checkSate);
+	}
+	m_suppressCheckStateChanges = false;
 }

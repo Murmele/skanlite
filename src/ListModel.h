@@ -60,11 +60,20 @@ public:
 		QStringList mimeTypes() const;
 		bool removeItem(const QModelIndex& index);
 		ListItem* getItem(const int row) const;
+
+		void deleteSelectedScans();
+		bool changeSelectionOfScans(int checkstate);
+
+Q_SIGNALS:
+	void selectionChanged(Qt::CheckState checkstate);
+
 private:
         ListItem* getItem(const QModelIndex &index) const;
 		ListItem* getItemFromId(int id) const ;
 		void checkSelectionOfAllItems();
+		Qt::CheckState m_checkSate{Qt::CheckState::Unchecked};
 		int m_maxId{-1}; // -1 means no images are available
+		bool m_suppressCheckStateChanges{false};
  private:
 	QList<ListItem*> m_scannedDocuments;
 };

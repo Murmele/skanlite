@@ -43,6 +43,9 @@
 #include <QCloseEvent>
 #include <QListView>
 #include <QSplitter>
+#include <QVBoxLayout>
+#include <QPrinter>
+#include <QPainter>
 
 #include <KAboutApplicationDialog>
 #include <KLocalizedString>
@@ -93,6 +96,7 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
 	auto *splitter = new QSplitter(this);
 	splitter->addWidget(m_ksanew);
 	m_scannedDocumentsModel = new ListModel();
+	connect(m_scannedDocumentsModel, &ListModel::selectionChanged, [=] (const Qt::CheckState& checkstate) {m_switchCheckstateScans->setCheckState(checkstate);});
 	m_scannedDocuments = new QListView();
 	m_scannedDocuments->installEventFilter(this);
 	m_scannedDocuments->setModel(m_scannedDocumentsModel);
@@ -101,7 +105,25 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
 	//m_scannedDocuments->setDragDropOverwriteMode(false);
 	m_scannedDocuments->setMovement(QListView::Snap);
 	m_scannedDocuments->setDefaultDropAction(Qt::MoveAction);
-	splitter->addWidget(m_scannedDocuments);
+
+	// delete checked, delete checked after scan, export checked, check all
+	m_deleteAfterScan = new QCheckBox(i18n("Delete after scan"), this);
+	m_switchCheckstateScans = new QCheckBox(i18n("switch selection"), this);
+	m_switchCheckstateScans->setCheckState(Qt::CheckState::Checked); // default state is checked
+	auto* exportScansToPDF = new QPushButton(i18n("Export to PDF"), this);
+	auto* deleteSelectedScans = new QPushButton(i18n("Delete checked scans"), this);
+
+	auto* vLayout = new QVBoxLayout(this);
+	vLayout->addWidget(m_switchCheckstateScans);
+	vLayout->addWidget(m_scannedDocuments);
+	vLayout->addWidget(m_deleteAfterScan);
+	vLayout->addWidget(deleteSelectedScans);
+	vLayout->addWidget(exportScansToPDF);
+
+	auto* widget = new QWidget(this);
+	widget->setLayout(vLayout);
+
+	splitter->addWidget(widget);
 	//auto* collapser = new KSaneIface::SplitterCollapser(splitter, m_scannedDocuments);
 
 	mainLayout->addWidget(splitter);
@@ -120,6 +142,10 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
     connect(btnSettings, &QPushButton::clicked, this, &Skanlite::showSettingsDialog);
     connect(btnAbout, &QPushButton::clicked, this, &Skanlite::showAboutDialog);
     connect(dlgButtonBoxBottom, &QDialogButtonBox::helpRequested, this, &Skanlite::showHelp);
+
+	connect(m_switchCheckstateScans, &QCheckBox::stateChanged, this, &Skanlite::changeScanSelection);
+	connect(deleteSelectedScans, &QPushButton::pressed, this, &Skanlite::deleteSelectedScans);
+	connect(exportScansToPDF, &QPushButton::pressed, this, &Skanlite::exportScansToPDF);
 
     //
     // Create the settings dialog
@@ -757,6 +783,68 @@ void Skanlite::alertUser(int type, const QString &strStatus)
 void Skanlite::buttonPressed(const QString &optionName, const QString &optionLabel, bool pressed)
 {
     qDebug() << "Button" << optionName << optionLabel << ((pressed) ? "pressed" : "released");
+}
+
+void Skanlite::changeScanSelection(int checkstate)
+{
+	if (checkstate == Qt::CheckState::PartiallyChecked)
+		return;
+
+	// preventing to uncheck checkbox when no scan is available
+	if (!m_scannedDocumentsModel->changeSelectionOfScans(checkstate) && checkstate == Qt::CheckState::Unchecked) {
+		m_switchCheckstateScans->setCheckState(Qt::CheckState::Checked);
+	}
+}
+
+void Skanlite::deleteSelectedScans()
+{
+	m_scannedDocumentsModel->deleteSelectedScans();
+}
+
+void Skanlite::exportScansToPDF() {
+
+	// ask the first time if we are in "ask on first" mode
+	QString dir = QDir::cleanPath(m_saveLocation->u_urlRequester->url().url()).append(QLatin1Char('/')); //make sure whole value is processed as path to directory
+
+	while ((m_firstImage && (m_settingsUi.saveModeCB->currentIndex() == SaveModeAskFirst)) ||
+		   !pathExists(dir, this)) {
+		if (m_saveLocation->exec() != QFileDialog::Accepted) {
+			m_ksanew->scanCancel(); // In case we are cancelling a document feeder scan
+			return;
+		}
+		dir = QDir::cleanPath(m_saveLocation->u_urlRequester->url().url()).append(QLatin1Char('/'));
+		m_firstImage = false;
+	}
+	dir = i18n("/home/martin/TestPrintSkanlite.pdf");
+
+	double width = m_ksanew->scanAreaWidth(); // in mm
+	double height = m_ksanew->scanAreaHeight(); // in mm
+
+	QPrinter printer(QPrinter::PrinterResolution);
+	float res = m_ksanew->currentDPI();
+	printer.setResolution(res);
+	printer.setOutputFormat(QPrinter::PdfFormat);
+	// ksanewidget returns sizes in millimeters
+	printer.setPaperSize(QSizeF(width, height), QPrinter::Unit::Millimeter);
+	printer.setOutputFileName(dir);
+
+	for (int i = 0; i < m_scannedDocumentsModel->rowCount(); i++) {
+		QPainter painter;
+
+		painter.begin(&printer);
+		// TODO: check if item checked
+		// Seems that the size is wrong
+		painter.drawImage(printer.pageRect(), *m_scannedDocumentsModel->getItem(i)->image());
+		painter.end();
+		bool success = printer.newPage(); // TODO: check result
+		if (success)
+			qDebug("Success");
+	}
+
+	if (m_deleteAfterScan->isChecked())
+		m_scannedDocumentsModel->deleteSelectedScans();
+
+
 }
 
 // D-Bus interface related helper functions

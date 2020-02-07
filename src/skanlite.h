@@ -84,6 +84,10 @@ private Q_SLOTS:
     void alertUser(int type, const QString &strStatus);
     void buttonPressed(const QString &optionName, const QString &optionLabel, bool pressed);
 
+	void changeScanSelection(int checkstate);
+	void deleteSelectedScans();
+	void exportScansToPDF();
+
     void showHelp();
 
     // slots to communicate with D-Bus interface
@@ -103,6 +107,8 @@ private:
     KAboutData              *m_aboutData;
 	KSaneWidget             *m_ksanew{nullptr};
 	QListView				*m_scannedDocuments{nullptr};
+	QCheckBox				*m_switchCheckstateScans{nullptr};
+	QCheckBox				*m_deleteAfterScan{nullptr};
 	ListModel				*m_scannedDocumentsModel{nullptr};
 	KSaneImageSaver         *m_imageSaver{nullptr};
     Ui::SkanliteSettings     m_settingsUi;
