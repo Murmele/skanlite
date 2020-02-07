@@ -11,7 +11,7 @@ ListItem::ListItem() {
 
 }
 
-ListItem::ListItem(QString name, QImage image, int hash): m_name(name), m_hash(hash) {
+ListItem::ListItem(QString name, QImage image, int id): m_name(name), m_id(id) {
 	setImage(image);
 }
 
@@ -27,8 +27,8 @@ const QImage* ListItem::image() const {
 	return &m_image;
 }
 
-void ListItem::setHash(int hash) {
-	m_hash = hash;
+void ListItem::setId(int id) {
+	m_id = id;
 }
 
 void ListItem::setImage(const QImage* image) {
@@ -49,8 +49,8 @@ bool ListItem::checked() const {
 	return m_checked;
 }
 
-int ListItem::hash() const {
-	return m_hash;
+int ListItem::id() const {
+	return m_id;
 }
 
 void ListItem::setName(QString name) {
@@ -153,7 +153,7 @@ bool ListModel::canDropMimeData(const QMimeData *data,
 	Q_UNUSED(row);
 	Q_UNUSED(parent);
 
-	if (!data->hasFormat(i18n("skanLite/ScannedDocuments/Hash")))
+	if (!data->hasFormat(i18n("skanLite/ScannedDocuments/Id")))
 		return false;
 
 	if (column > 0)
@@ -174,10 +174,10 @@ QMimeData* ListModel::mimeData(const QModelIndexList &indexes) const {
 
 	for (auto index : indexes) {
 		ListItem* item = getItem(index);
-		stream << item->hash();
+		stream << item->id();
 	}
 
-	mimeData->setData(i18n("skanLite/ScannedDocuments/Hash"), encodedData);
+	mimeData->setData(i18n("skanLite/ScannedDocuments/Id"), encodedData);
 
 	return mimeData;
 }
@@ -190,7 +190,7 @@ QMimeData* ListModel::mimeData(const QModelIndexList &indexes) const {
 QStringList ListModel::mimeTypes() const
 {
 	QStringList types;
-	types << i18n("skanLite/ScannedDocuments/Hash");
+	types << i18n("skanLite/ScannedDocuments/Id");
 	return types;
 }
 
@@ -199,7 +199,7 @@ bool ListModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int r
 	if (action == Qt::IgnoreAction)
 		return true;
 
-	if (!data->hasFormat(i18n("skanLite/ScannedDocuments/Hash")))
+	if (!data->hasFormat(i18n("skanLite/ScannedDocuments/Id")))
 		return false;
 
 	if (column > 0)
@@ -212,22 +212,26 @@ bool ListModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int r
 	if (row == -1)
 		row = rowCount(QModelIndex());
 
-	QByteArray encodedData = data->data(i18n("skanLite/ScannedDocuments/Hash"));
+	QByteArray encodedData = data->data(i18n("skanLite/ScannedDocuments/Id"));
 	QDataStream stream(&encodedData, QIODevice::ReadOnly);
 
-	QVector<int> hashes;
+	QVector<int> ids;
 	while (!stream.atEnd()) {
-		int hash;
-		stream >> hash;
-		hashes.append(hash);
+		int id;
+		stream >> id;
+		ids.append(id);
 	}
 
-	insertRows(row, hashes.count(), QModelIndex());
-	for (int i = 0; i < hashes.count(); i++) {
-		QModelIndex idx = index(row + i, 0, QModelIndex());
-		ListItem* item = getItem(hashes[i]);
+
+	for (int i = 0; i < ids.count(); i++) {
+		ListItem* item = getItemFromId(ids[i]); // get item before inserting rows, because otherwise the order is wrong
+
 		if (!item)
 			return false;
+
+		insertRows(row + i, 1);
+		QModelIndex idx = index(row + i, 0);
+
 		setDataFromItem(idx, item);
 	}
 
@@ -255,9 +259,9 @@ bool ListModel::appendItem(ListItem* item) {
 }
 
 bool ListModel::appendImage(QImage& image) {
-	m_maxHash++;
+	m_maxId++;
 
-	ListItem* item = new ListItem(i18n("Temp_name"), image, m_maxHash);
+	ListItem* item = new ListItem(i18n("Temp_name"), image, m_maxId);
 	return appendItem(item);
 }
 
@@ -297,7 +301,7 @@ bool ListModel::setDataFromItem(const QModelIndex &index, const ListItem* item) 
 
 	newItem->setImage(item->image());
 	newItem->setName(item->name());
-	newItem->setHash(item->hash());
+	newItem->setId(item->id());
 	newItem->setChecked(item->checked());
 
 	dataChanged(index, index, QVector<int>(Qt::EditRole));
@@ -341,6 +345,11 @@ bool ListModel::insertRow(int row, const QModelIndex &parent) {
 	return insertRows(row, 1, parent);
 }
 
+ListItem* ListModel::getItem(const int row) const {
+	QModelIndex idx = index(row, 0);
+	return getItem(idx);
+}
+
 ListItem* ListModel::getItem(const QModelIndex &index) const {
 	if (!index.isValid())
 		return nullptr;
@@ -352,12 +361,12 @@ ListItem* ListModel::getItem(const QModelIndex &index) const {
 	return nullptr;
 }
 
-ListItem* ListModel::getItem(int hash) const {
-	if (hash < 0)
+ListItem* ListModel::getItemFromId(int id) const {
+	if (id < 0)
 		return nullptr;
 
 	for (auto item : m_scannedDocuments) {
-		if (item->hash() == hash)
+		if (item->id() == id)
 			return item;
 	}
 	return nullptr;

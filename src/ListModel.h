@@ -13,12 +13,12 @@ class ListItem
 {
 public:
 	ListItem();
-	ListItem(QString name, QImage image, int hash);
+	ListItem(QString name, QImage image, int id);
 	const QImage *previewIcon() const;
 	void setPreviewIcon(QImage icon);
 	const QImage *image() const;
-	int hash() const;
-	void setHash(int hash);
+	int id() const;
+	void setId(int id);
 	void setImage(const QImage *image);
     void setImage(QImage image);
 	void setName(QString name);
@@ -26,7 +26,7 @@ public:
 	QString name() const;
 	bool checked() const;
 private:
-	int m_hash;
+	int m_id;
 	QImage m_preview;
     QImage m_image;
 	QString m_name;
@@ -59,10 +59,12 @@ public:
 		QMimeData *mimeData(const QModelIndexList &indexes) const override;
 		QStringList mimeTypes() const;
 		bool removeItem(const QModelIndex& index);
+		ListItem* getItem(const int row) const;
 private:
         ListItem* getItem(const QModelIndex &index) const;
-		ListItem* getItem(int hash) const ;
-		int m_maxHash{-1}; // -1 means no images are available
+		ListItem* getItemFromId(int id) const ;
+		void checkSelectionOfAllItems();
+		int m_maxId{-1}; // -1 means no images are available
  private:
 	QList<ListItem*> m_scannedDocuments;
 };
