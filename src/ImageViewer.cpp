@@ -97,9 +97,13 @@ void ImageViewer::drawBackground(QPainter *painter, const QRectF &rect)
 {
     painter->fillRect(rect, QColor(0x70, 0x70, 0x70));
     QRectF r = rect & sceneRect();
-    const auto dpr = d->img->devicePixelRatio();
-    QRectF srcRect = QRectF(r.topLeft() * dpr, r.size() * dpr);
-    painter->drawImage(r, *d->img, srcRect);
+	// don't access img when it is not valid.
+	// can occur when removeImage() is called
+	if (d->img) {
+		const auto dpr = d->img->devicePixelRatio();
+		QRectF srcRect = QRectF(r.topLeft() * dpr, r.size() * dpr);
+		painter->drawImage(r, *d->img, srcRect);
+	}
 }
 
 // ------------------------------------------------------------------------
@@ -143,5 +147,14 @@ void ImageViewer::wheelEvent(QWheelEvent *e)
     else {
         QGraphicsView::wheelEvent(e);
     }
+}
+
+QImage* ImageViewer::image() const {
+	return d->img;
+}
+
+void ImageViewer::removeImage() {
+	d->img = nullptr;
+	scene()->invalidate(scene()->sceneRect()); // to force repainting of the background
 }
 

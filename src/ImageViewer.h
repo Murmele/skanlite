@@ -36,6 +36,8 @@ public:
     ~ImageViewer();
 
     void setQImage(QImage *img);
+	QImage* image() const;
+	void removeImage();
 
 public Q_SLOTS:
     void zoomIn();
