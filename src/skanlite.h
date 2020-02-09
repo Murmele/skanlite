@@ -25,7 +25,7 @@
 #define Skanlite_h
 
 #include <QDir>
-#include <QDialog>
+#include <QMainWindow>
 
 #include <KSaneWidget>
 
@@ -42,7 +42,7 @@ class ExportLocation;
 
 using namespace KSaneIface;
 
-class Skanlite : public QDialog
+class Skanlite : public QMainWindow
 {
     Q_OBJECT
 
