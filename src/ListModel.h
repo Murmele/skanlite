@@ -69,6 +69,7 @@ Q_SIGNALS:
 	void currentItemChanged(const ListItem* item);
 	void itemAboutToBeRemoved(const ListItem* item);
 
+public Q_SLOTS:
 	void currentItemChangedSlot(const QModelIndex &current, const QModelIndex &previous);
 private:
         ListItem* getItem(const QModelIndex &index) const;
