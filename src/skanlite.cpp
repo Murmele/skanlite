@@ -817,8 +817,8 @@ void Skanlite::exportScansToPDF() {
 	}
 	dir = i18n("/home/martin/TestPrintSkanlite.pdf");
 
-	double width = m_ksanew->scanAreaWidth(); // in mm
-	double height = m_ksanew->scanAreaHeight(); // in mm
+	double width = m_width / m_ksanew->currentDPI() * 25.4; // in mm
+	double height = m_height / m_ksanew->currentDPI() * 25.4; // in mm
 
 	QPrinter printer(QPrinter::PrinterResolution);
 	float res = m_ksanew->currentDPI();
