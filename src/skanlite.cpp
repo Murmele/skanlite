@@ -829,20 +829,22 @@ void Skanlite::exportScansToPDF() {
 	printer.setPageMargins(0, 0, 0, 0, QPrinter::Unit::Millimeter); // seems there are default margins
 	printer.setOutputFileName(dir);
 
+	QPainter painter;
+	painter.begin(&printer);
 	for (int i = 0; i < m_scannedDocumentsModel->rowCount(); i++) {
 
 		ListItem* item = m_scannedDocumentsModel->getItem(i);
+		// don't print not checked images
 		if(!item->checked())
 			continue;
 
-		QPainter painter;
-		painter.begin(&printer);
 		painter.drawImage(printer.pageRect(), *item->image());
-		painter.end();
-		bool success = printer.newPage(); // TODO: check result
-		if (success)
-			qDebug("Success");
+
+		// don't create empty page at the end
+		if (i < m_scannedDocumentsModel->rowCount() - 1)
+			printer.newPage();
 	}
+	painter.end();
 
 	if (m_deleteAfterScan->isChecked())
 		m_scannedDocumentsModel->deleteSelectedScans();
