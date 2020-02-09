@@ -62,11 +62,14 @@
 #include <errno.h>
 
 Skanlite::Skanlite(const QString &device, QWidget *parent)
-    : QDialog(parent)
+	: QMainWindow(parent)
     , m_aboutData(nullptr)
     , m_dbusInterface(this)
 {
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
+	auto* centralWidget = new QWidget(this);
+	centralWidget->setLayout(mainLayout);
+	setCentralWidget(centralWidget);
 
     QDialogButtonBox *dlgButtonBoxBottom = new QDialogButtonBox(this);
     dlgButtonBoxBottom->setStandardButtons(QDialogButtonBox::Help | QDialogButtonBox::Close);
@@ -138,8 +141,6 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
     resize(rect);
 
     connect(dlgButtonBoxBottom, &QDialogButtonBox::rejected, this, &QDialog::close);
-    connect(this, &QDialog::finished, this, &Skanlite::saveWindowSize);
-    connect(this, &QDialog::finished, this, &Skanlite::saveScannerOptions);
     connect(btnSettings, &QPushButton::clicked, this, &Skanlite::showSettingsDialog);
     connect(btnAbout, &QPushButton::clicked, this, &Skanlite::showAboutDialog);
     connect(dlgButtonBoxBottom, &QDialogButtonBox::helpRequested, this, &Skanlite::showHelp);
