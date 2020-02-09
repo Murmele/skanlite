@@ -830,12 +830,14 @@ void Skanlite::exportScansToPDF() {
 	printer.setOutputFileName(dir);
 
 	for (int i = 0; i < m_scannedDocumentsModel->rowCount(); i++) {
-		QPainter painter;
 
+		ListItem* item = m_scannedDocumentsModel->getItem(i);
+		if(!item->checked())
+			continue;
+
+		QPainter painter;
 		painter.begin(&printer);
-		// TODO: check if item checked
-		// Seems that the size is wrong
-		painter.drawImage(printer.pageRect(), *m_scannedDocumentsModel->getItem(i)->image());
+		painter.drawImage(printer.pageRect(), *item->image());
 		painter.end();
 		bool success = printer.newPage(); // TODO: check result
 		if (success)
