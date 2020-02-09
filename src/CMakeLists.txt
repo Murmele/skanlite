@@ -7,9 +7,10 @@ set(skanlite_SRCS
     SaveLocation.cpp
     DBusInterface.cpp
     ListModel.cpp
+    ExportLocation.cpp
 )
 
-ki18n_wrap_ui(skanlite_SRCS settings.ui SaveLocation.ui)
+ki18n_wrap_ui(skanlite_SRCS settings.ui SaveLocation.ui ExportLocation.ui)
 
 #kde4_add_app_icon(skanlite_SRCS "${KDE4_INSTALL_DIR}/share/icons/oxygen/*/devices/scanner.png")
 
