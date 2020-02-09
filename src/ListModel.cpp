@@ -261,7 +261,7 @@ bool ListModel::appendItem(ListItem* item) {
 bool ListModel::appendImage(QImage& image) {
 	m_maxId++;
 
-	ListItem* item = new ListItem(i18n("Temp_name"), image, m_maxId);
+	ListItem* item = new ListItem(QString::number(m_maxId + 1), image, m_maxId);
 	return appendItem(item);
 }
 
