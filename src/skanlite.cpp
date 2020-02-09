@@ -826,6 +826,7 @@ void Skanlite::exportScansToPDF() {
 	printer.setOutputFormat(QPrinter::PdfFormat);
 	// ksanewidget returns sizes in millimeters
 	printer.setPaperSize(QSizeF(width, height), QPrinter::Unit::Millimeter);
+	printer.setPageMargins(0, 0, 0, 0, QPrinter::Unit::Millimeter);
 	printer.setOutputFileName(dir);
 
 	for (int i = 0; i < m_scannedDocumentsModel->rowCount(); i++) {
