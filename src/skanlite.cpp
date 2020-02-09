@@ -48,6 +48,7 @@
 #include <QVBoxLayout>
 #include <QPrinter>
 #include <QPainter>
+#include <QSlider>
 
 #include <KAboutApplicationDialog>
 #include <KLocalizedString>
@@ -95,27 +96,35 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
 
 	auto *splitter = new QSplitter(this);
 	splitter->addWidget(m_ksanew);
+
+	m_switchCheckstateScans = new QCheckBox(i18n("switch selection"), this);
+	m_switchCheckstateScans->setCheckState(Qt::CheckState::Checked); // default state is checked
+
+	// listview of scanned documents
 	m_scannedDocumentsModel = new ListModel();
 	connect(m_scannedDocumentsModel, &ListModel::selectionChanged, [=] (const Qt::CheckState& checkstate) {m_switchCheckstateScans->setCheckState(checkstate);});
 	m_scannedDocuments = new QListView();
 	m_scannedDocuments->installEventFilter(this);
 	m_scannedDocuments->setModel(m_scannedDocumentsModel);
-	//m_scannedDocuments->setViewMode(QListView::IconMode);
+	m_scannedDocuments->setViewMode(QListView::IconMode);
 	m_scannedDocuments->setDragDropMode(QAbstractItemView::InternalMove);
 	//m_scannedDocuments->setDragDropOverwriteMode(false);
 	m_scannedDocuments->setMovement(QListView::Snap);
 	m_scannedDocuments->setDefaultDropAction(Qt::MoveAction);
 
+	auto* previewSizeSlider = new QSlider(Qt::Orientation::Horizontal, this);
+	previewSizeSlider->setMinimum(100);
+	previewSizeSlider->setMaximum(500);
+	previewSizeSlider->setValue(m_scannedDocumentsModel->previewHeight());
 	// delete checked, delete checked after scan, export checked, check all
 	m_deleteAfterScan = new QCheckBox(i18n("Delete after scan"), this);
-	m_switchCheckstateScans = new QCheckBox(i18n("switch selection"), this);
-	m_switchCheckstateScans->setCheckState(Qt::CheckState::Checked); // default state is checked
 	auto* exportScansToPDF = new QPushButton(i18n("Export to PDF"), this);
 	auto* deleteSelectedScans = new QPushButton(i18n("Delete checked scans"), this);
 
 	auto* vLayout = new QVBoxLayout(this);
 	vLayout->addWidget(m_switchCheckstateScans);
 	vLayout->addWidget(m_scannedDocuments);
+	vLayout->addWidget(previewSizeSlider);
 	vLayout->addWidget(m_deleteAfterScan);
 	vLayout->addWidget(deleteSelectedScans);
 	vLayout->addWidget(exportScansToPDF);
@@ -144,6 +153,7 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
     connect(btnAbout, &QPushButton::clicked, this, &Skanlite::showAboutDialog);
     connect(dlgButtonBoxBottom, &QDialogButtonBox::helpRequested, this, &Skanlite::showHelp);
 
+	connect(previewSizeSlider, &QSlider::valueChanged, m_scannedDocumentsModel, &ListModel::changePreviewSize);
 	connect(m_switchCheckstateScans, &QCheckBox::stateChanged, this, &Skanlite::changeScanSelection);
 	connect(deleteSelectedScans, &QPushButton::pressed, this, &Skanlite::deleteSelectedScans);
 	connect(exportScansToPDF, &QPushButton::pressed, this, &Skanlite::exportScansToPDF);

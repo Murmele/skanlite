@@ -11,8 +11,8 @@ ListItem::ListItem() {
 
 }
 
-ListItem::ListItem(QString name, QImage image, int id): m_name(name), m_id(id) {
-	setImage(image);
+ListItem::ListItem(QString name, QImage image, int id, int previewHeight): m_name(name), m_id(id) {
+	setImage(image, previewHeight);
 }
 
 const QImage *ListItem::previewIcon() const{
@@ -31,12 +31,12 @@ void ListItem::setId(int id) {
 	m_id = id;
 }
 
-void ListItem::setImage(const QImage* image) {
+void ListItem::setImage(const QImage* image, int previewHeight) {
 	m_image = *image;
 	m_preview = m_image.scaledToHeight(100);
 }
 
-void ListItem::setImage(QImage image) {
+void ListItem::setImage(QImage image, int previewHeigth) {
 	m_image = image;
 	m_preview = m_image.scaledToHeight(100);
 }
@@ -98,6 +98,10 @@ QVariant ListModel::data(const QModelIndex &index, int role) const {
 		if (item->checked())
 			return Qt::CheckState::Checked;
 		return Qt::CheckState::Unchecked;
+	}
+
+	if (role == Qt::SizeHintRole) {
+		return QSize(m_previewHeight + 30, m_previewHeight);
 	}
 
 	return QVariant();
@@ -261,7 +265,7 @@ bool ListModel::appendItem(ListItem* item) {
 bool ListModel::appendImage(QImage& image) {
 	m_maxId++;
 
-	ListItem* item = new ListItem(QString::number(m_maxId + 1), image, m_maxId);
+	ListItem* item = new ListItem(QString::number(m_maxId + 1), image, m_maxId, m_previewHeight);
 	return appendItem(item);
 }
 
@@ -290,8 +294,9 @@ bool ListModel::setData(const QModelIndex &index, const QVariant &value, int rol
 		checkSelectionOfAllItems();
 	}
 
-	if (role == Qt::DecorationRole)
+	if (role == Qt::DecorationRole) {
 		item->setPreviewIcon(value.value<QImage>());
+	}
 
 	dataChanged(index, index, QVector<int>(role));
 	return true;
@@ -303,7 +308,7 @@ bool ListModel::setDataFromItem(const QModelIndex &index, const ListItem* item) 
 
 	ListItem* newItem = getItem(index);
 
-	newItem->setImage(item->image());
+	newItem->setImage(item->image(), m_previewHeight);
 	newItem->setName(item->name());
 	newItem->setId(item->id());
 	newItem->setChecked(item->checked());
@@ -445,4 +450,23 @@ void ListModel::checkSelectionOfAllItems() {
 		emit selectionChanged(m_checkSate);
 	}
 	m_suppressCheckStateChanges = false;
+}
+
+/*!
+ * \brief ListModel::changePreviewSize
+ * Resize the previews of the scans
+ * \param heigth
+ */
+void ListModel::changePreviewSize(int heigth) {
+	m_previewHeight = heigth;
+	for (int row = 0; row < rowCount(); row++) {
+		QModelIndex idx = index(row);
+		ListItem* item = getItem(row);
+		setData(idx, item->image()->scaledToHeight(m_previewHeight), Qt::DecorationRole);
+		dataChanged(idx, idx, QVector<int>(Qt::SizeHintRole));
+	}
+}
+
+int ListModel::previewHeight() {
+	return m_previewHeight;
 }

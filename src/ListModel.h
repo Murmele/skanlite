@@ -13,14 +13,14 @@ class ListItem
 {
 public:
 	ListItem();
-	ListItem(QString name, QImage image, int id);
+	ListItem(QString name, QImage image, int id, int previewHeight);
 	const QImage *previewIcon() const;
 	void setPreviewIcon(QImage icon);
 	const QImage *image() const;
 	int id() const;
 	void setId(int id);
-	void setImage(const QImage *image);
-    void setImage(QImage image);
+	void setImage(const QImage *image, int previewHeight);
+	void setImage(QImage image, int previewHeigth);
 	void setName(QString name);
 	void setChecked(bool checked);
 	QString name() const;
@@ -60,12 +60,15 @@ public:
 		QStringList mimeTypes() const;
 		bool removeItem(const QModelIndex& index);
 		ListItem* getItem(const int row) const;
-
+		int previewHeight();
 		void deleteSelectedScans();
 		bool changeSelectionOfScans(int checkstate);
 
 Q_SIGNALS:
 	void selectionChanged(Qt::CheckState checkstate);
+
+public Q_SLOTS:
+	void changePreviewSize(int heigth);
 
 private:
         ListItem* getItem(const QModelIndex &index) const;
@@ -76,6 +79,7 @@ private:
 		bool m_suppressCheckStateChanges{false};
  private:
 	QList<ListItem*> m_scannedDocuments;
+	int m_previewHeight{100};
 };
 
 #endif // LISTMODEL_H
