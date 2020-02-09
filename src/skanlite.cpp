@@ -817,14 +817,14 @@ void Skanlite::exportScansToPDF() {
 	}
 	dir = i18n("/home/martin/TestPrintSkanlite.pdf");
 
-	double width = m_width / m_ksanew->currentDPI() * 25.4; // in mm
-	double height = m_height / m_ksanew->currentDPI() * 25.4; // in mm
+	float res = m_ksanew->currentDPI();
+
+	double width = m_width / res * 25.4; // in mm
+	double height = m_height / res * 25.4; // in mm
 
 	QPrinter printer(QPrinter::PrinterResolution);
-	float res = m_ksanew->currentDPI();
 	printer.setResolution(res);
 	printer.setOutputFormat(QPrinter::PdfFormat);
-	// ksanewidget returns sizes in millimeters
 	printer.setPaperSize(QSizeF(width, height), QPrinter::Unit::Millimeter);
 	printer.setPageMargins(0, 0, 0, 0, QPrinter::Unit::Millimeter);
 	printer.setOutputFileName(dir);
