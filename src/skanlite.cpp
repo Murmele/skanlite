@@ -26,6 +26,7 @@
 
 #include "SaveLocation.h"
 #include "showimagedialog.h"
+#include "ListModel.h"
 #include "ExportLocation.h"
 
 #include <QApplication>
@@ -59,8 +60,6 @@
 #include <KConfigGroup>
 #include <KHelpClient>
 #include <errno.h>
-
-#include <ListModel.h>
 
 Skanlite::Skanlite(const QString &device, QWidget *parent)
     : QDialog(parent)
@@ -121,6 +120,7 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
 	vLayout->addWidget(deleteSelectedScans);
 	vLayout->addWidget(exportScansToPDF);
 
+	// widget with the listview with the scanned documents
 	auto* widget = new QWidget(this);
 	widget->setLayout(vLayout);
 
