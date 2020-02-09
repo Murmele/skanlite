@@ -19,6 +19,7 @@ add_executable(skanlite ${skanlite_SRCS})
 target_link_libraries(skanlite
   PUBLIC
     Qt5::Core
+    Qt5::PrintSupport
   PRIVATE
     KF5::CoreAddons
     KF5::Sane

@@ -36,6 +36,7 @@ set(SKANLITE_VERSION_STRING "2.2.0.0")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/src/version.h)
 
 # Dependencies
+find_package(Qt5PrintSupport REQUIRED)
 find_package(Qt5 ${REQUIRED_QT_VERSION} NO_MODULE REQUIRED Core Widgets)
 
 find_package(PNG REQUIRED)
