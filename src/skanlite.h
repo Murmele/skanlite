@@ -38,6 +38,7 @@ class ShowImageDialog;
 class SaveLocation;
 class KAboutData;
 class ListModel;
+class ExportLocation;
 
 using namespace KSaneIface;
 
@@ -115,6 +116,7 @@ private:
 	QDialog                 *m_settingsDialog{nullptr};
 	ShowImageDialog         *m_showImgDialog{nullptr};
 	SaveLocation            *m_saveLocation{nullptr};
+	ExportLocation			*m_exportLocation{nullptr};
     QString                  m_deviceName;
     QMap<QString, QString>   m_defaultScanOpts;
     QMap<QString, QString>   m_pendingApplyScanOpts;

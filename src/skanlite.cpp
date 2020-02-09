@@ -26,6 +26,7 @@
 
 #include "SaveLocation.h"
 #include "showimagedialog.h"
+#include "ExportLocation.h"
 
 #include <QApplication>
 #include <QScrollArea>
@@ -159,6 +160,7 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
         m_settingsUi.setupUi(settingsWidget);
         m_settingsUi.revertOptions->setIcon(QIcon::fromTheme(QLatin1String("edit-undo")));
         m_saveLocation = new SaveLocation(this);
+		m_exportLocation = new ExportLocation(this);
 
         // add the supported image types
         const QList<QByteArray> tmpList = QImageWriter::supportedMimeTypes();
@@ -803,20 +805,10 @@ void Skanlite::deleteSelectedScans()
 
 void Skanlite::exportScansToPDF() {
 
-	// ask the first time if we are in "ask on first" mode
-	QString dir = QDir::cleanPath(m_saveLocation->u_urlRequester->url().url()).append(QLatin1Char('/')); //make sure whole value is processed as path to directory
+	if (m_exportLocation->exec() != QFileDialog::Accepted)
+		return;
 
-	while ((m_firstImage && (m_settingsUi.saveModeCB->currentIndex() == SaveModeAskFirst)) ||
-		   !pathExists(dir, this)) {
-		if (m_saveLocation->exec() != QFileDialog::Accepted) {
-			m_ksanew->scanCancel(); // In case we are cancelling a document feeder scan
-			return;
-		}
-		dir = QDir::cleanPath(m_saveLocation->u_urlRequester->url().url()).append(QLatin1Char('/'));
-		m_firstImage = false;
-	}
-	dir = i18n("/home/martin/TestPrintSkanlite.pdf");
-
+	QString file = m_exportLocation->getFileUrl();
 	float res = m_ksanew->currentDPI();
 
 	double width = m_width / res * 25.4; // in mm
@@ -827,7 +819,7 @@ void Skanlite::exportScansToPDF() {
 	printer.setOutputFormat(QPrinter::PdfFormat);
 	printer.setPaperSize(QSizeF(width, height), QPrinter::Unit::Millimeter);
 	printer.setPageMargins(0, 0, 0, 0, QPrinter::Unit::Millimeter); // seems there are default margins
-	printer.setOutputFileName(dir);
+	printer.setOutputFileName(file);
 
 	QPainter painter;
 	painter.begin(&printer);
