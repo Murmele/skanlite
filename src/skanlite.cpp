@@ -28,6 +28,7 @@
 #include "showimagedialog.h"
 #include "ListModel.h"
 #include "ExportLocation.h"
+#include "ImageViewer.h"
 
 #include <QApplication>
 #include <QScrollArea>
@@ -49,6 +50,8 @@
 #include <QPrinter>
 #include <QPainter>
 #include <QSlider>
+#include <QDockWidget>
+#include <QMenuBar>
 
 #include <KAboutApplicationDialog>
 #include <KLocalizedString>
@@ -142,6 +145,15 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
 	mainLayout->addWidget(splitter);
     mainLayout->addWidget(dlgButtonBoxBottom);
 
+	// preview widget
+	auto* previewDock = new QDockWidget(i18n("Preview"), this);
+	m_previewWidget = new ImageViewer(this);
+	previewDock->setWidget(m_previewWidget);
+	addDockWidget(Qt::RightDockWidgetArea, previewDock);
+
+	QMenuBar* menu = menuBar();
+	auto* viewMenu = menu->addMenu(tr("&View"));
+	viewMenu->addAction(previewDock->toggleViewAction());
     m_ksanew->initGetDeviceList();
 
     // read the size here...
@@ -158,8 +170,11 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
 	connect(m_switchCheckstateScans, &QCheckBox::stateChanged, this, &Skanlite::changeScanSelection);
 	connect(deleteSelectedScans, &QPushButton::pressed, this, &Skanlite::deleteSelectedScans);
 	connect(exportScansToPDF, &QPushButton::pressed, this, &Skanlite::exportScansToPDF);
+	connect(m_scannedDocuments->selectionModel(), &QItemSelectionModel::currentChanged, m_scannedDocumentsModel, &ListModel::currentItemChangedSlot);
+	connect(m_scannedDocumentsModel, &ListModel::itemAboutToBeRemoved, this, &Skanlite::scanRemoved);
+	connect(m_scannedDocumentsModel, &ListModel::currentItemChanged, this, &Skanlite::selectedScanChanged);
 
-    //
+	//
     // Create the settings dialog
     //
     {
@@ -976,4 +991,19 @@ void Skanlite::getSelection()
 void Skanlite::setSelection(const QStringList &options)
 { // here options contains selection related subset of options
     setScannerOptions(options, false);
+}
+
+void Skanlite::selectedScanChanged(const ListItem* item)
+{
+	if (!item)
+		return;
+
+	m_previewWidget->setQImage(const_cast<QImage*>(item->image()));
+	m_previewWidget->zoom2Fit();
+}
+
+void Skanlite::scanRemoved(const ListItem* item)
+{
+	if (item->image() == m_previewWidget->image())
+		m_previewWidget->removeImage();
 }

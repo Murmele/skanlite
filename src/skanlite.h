@@ -39,6 +39,8 @@ class SaveLocation;
 class KAboutData;
 class ListModel;
 class ExportLocation;
+class ListItem;
+class ImageViewer;
 
 using namespace KSaneIface;
 
@@ -49,6 +51,10 @@ class Skanlite : public QMainWindow
 public:
     explicit Skanlite(const QString &device, QWidget *parent);
     void setAboutData(KAboutData *aboutData);
+
+public Q_SLOTS:
+	void selectedScanChanged(const ListItem* item);
+	void scanRemoved(const ListItem* item);
 
 private:
     // Order of items in save mode combo-box
@@ -111,6 +117,7 @@ private:
 	QCheckBox				*m_switchCheckstateScans{nullptr};
 	QCheckBox				*m_deleteAfterScan{nullptr};
 	ListModel				*m_scannedDocumentsModel{nullptr};
+	ImageViewer				*m_previewWidget{nullptr};
 	KSaneImageSaver         *m_imageSaver{nullptr};
     Ui::SkanliteSettings     m_settingsUi;
 	QDialog                 *m_settingsDialog{nullptr};

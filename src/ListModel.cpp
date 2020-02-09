@@ -332,8 +332,10 @@ bool ListModel::removeItem(const QModelIndex& index) {
 
 bool ListModel::removeRows(int row, int count, const QModelIndex &parent)  {
 	beginRemoveRows(parent,row, row + count -1);
-	for (int i = 0; i < count; i++)
+	for (int i = 0; i < count; i++) {
+		emit itemAboutToBeRemoved(m_scannedDocuments[row]);
 		m_scannedDocuments.removeAt(row);
+	}
 	endRemoveRows();
 
 	checkSelectionOfAllItems();
@@ -465,6 +467,10 @@ void ListModel::changePreviewSize(int heigth) {
 		setData(idx, item->image()->scaledToHeight(m_previewHeight), Qt::DecorationRole);
 		dataChanged(idx, idx, QVector<int>(Qt::SizeHintRole));
 	}
+}
+
+void ListModel::currentItemChangedSlot(const QModelIndex &current, const QModelIndex &previous) {
+	emit currentItemChanged(getItem(current));
 }
 
 int ListModel::previewHeight() {

@@ -66,9 +66,12 @@ public:
 
 Q_SIGNALS:
 	void selectionChanged(Qt::CheckState checkstate);
+	void currentItemChanged(const ListItem* item);
+	void itemAboutToBeRemoved(const ListItem* item);
 
 public Q_SLOTS:
 	void changePreviewSize(int heigth);
+	void currentItemChangedSlot(const QModelIndex &current, const QModelIndex &previous);
 
 private:
         ListItem* getItem(const QModelIndex &index) const;
