@@ -113,7 +113,7 @@ Skanlite::Skanlite(const QString &device, QWidget *parent)
 	m_scannedDocuments->setDefaultDropAction(Qt::MoveAction);
 
 	// delete checked, delete checked after scan, export checked, check all
-	m_deleteAfterScan = new QCheckBox(i18n("Delete after scan"), this);
+	m_deleteAfterScan = new QCheckBox(i18n("Delete checked scans after export"), this);
 	m_switchCheckstateScans = new QCheckBox(i18n("switch selection"), this);
 	m_switchCheckstateScans->setCheckState(Qt::CheckState::Checked); // default state is checked
 	auto* exportScansToPDF = new QPushButton(i18n("Export to PDF"), this);
