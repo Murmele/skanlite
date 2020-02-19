@@ -329,6 +329,7 @@ bool ListModel::removeRows(int row, int count, const QModelIndex &parent)  {
 	beginRemoveRows(parent,row, row + count -1);
 	for (int i = 0; i < count; i++) {
 		emit itemAboutToBeRemoved(m_scannedDocuments[row]);
+		delete m_scannedDocuments[row]; // delete content
 		m_scannedDocuments.removeAt(row);
 	}
 	endRemoveRows();
